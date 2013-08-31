@@ -1,0 +1,5 @@
+py.test -x -s --showlocals \
+    --doctest-modules \
+    --looponfail \
+    --pep8
+    --cov .
