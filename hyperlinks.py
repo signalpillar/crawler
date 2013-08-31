@@ -6,9 +6,9 @@ It will store each outgoing link for the URL, and then repeat the process
 for each or them, until --limit URLs will have been traversed.
 
 USAGE:
-    crawler --url <start-url> --limit <depth> [--dbout] [--out <dest-file>]
-    crawler -h | --help
-    crawler --version
+    hyperlinks --url <start-url> --limit <depth> [--dbout] [--out <dest-file>]
+    hyperlinks -h | --help
+    hyperlinks --version
 
 OPTIONS:
     -h --help         Show this screen
