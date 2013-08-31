@@ -1,7 +1,46 @@
-import hyperlinks
 import pytest
-from functools import partial as Fn
+import mock
+
 from itertools import izip
+from functools import partial as Fn
+from contextlib import nested
+
+import hyperlinks
+
+
+def test_cli_flow_in_general():
+    "Check whether all required steps are perfomed"
+    # given
+    graph = {'key': 'value'}
+
+    args = {"--url": "http://me.at.com",
+            "--limit": "20",
+            "--dbout": True}
+
+    with nested(mock.patch("collector.collect_links"),
+                mock.patch("hyperlinks.print_graph"),
+                mock.patch("hyperlinks.send_to_mongodb")) as (
+            collect_links,
+            print_graph,
+            send_to_mongodb):
+        collect_links.return_value = graph
+
+        hyperlinks.cli(args)
+
+        collect_links.assert_called_once_with("http://me.at.com", 20)
+        print_graph.assert_called_once_with(graph, None)
+        send_to_mongodb.assert_called_once_with(graph)
+
+
+def test_cli_failed_due_to_invalid_depth(monkeypatch):
+    # given
+    args = {"--url": "http://me.at.com",
+            "--limit": "20.0"}
+    # when
+    (msg, error_code), _ = get_exit_params(args, monkeypatch)
+    # then
+    assert msg == 'Invalid depth value specified'
+    assert error_code == 1
 
 
 def test_cli_failed_due_to_invalid_url(monkeypatch):
@@ -25,6 +64,17 @@ def test_cli_flow_with_correct_args(monkeypatch):
     exit_params = get_exit_params(args, monkeypatch)
     # then
     assert exit_params == []
+
+
+def test_depth_value():
+    are_valid(hyperlinks.get_depth,
+              hyperlinks.InvalidArgumentValue,
+              "20", True,
+              "-20", False,
+              "0", False,
+              "1.6", False,
+              "1e6", False,
+              None, False)
 
 
 def test_get_url():

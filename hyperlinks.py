@@ -20,10 +20,10 @@ OPTIONS:
     --dbout           Causes the data to be stored in a MongoDB collection
 
 """
+import collector
 import docopt
 import re
 from fn import _ as __
-from crawler import collect_links
 
 
 VERSION = "0.0.1"
@@ -42,15 +42,18 @@ def cli(args):
         url, depth, dest_file_name, dbout = parse_args(
             args,
             ("--url", get_url),
-            ("--limit", get_limit),
-            ("--out", get_dest_file_name),
-            ("--dbout", (__)))
+            ("--limit", get_depth),
+            ("--out", identity),
+            ("--dbout", identity))
 
-        graph = collect_links(url, depth)
+        graph = collector.collect_links(url, depth)
         print_graph(graph, dest_file_name)
         dbout and send_to_mongodb(graph)
     except CliException, ce:
         exit_cli(str(ce), 1)
+
+
+identity = (__)
 
 
 def exit_cli(msg, error_code):
@@ -58,15 +61,12 @@ def exit_cli(msg, error_code):
     exit(error_code)
 
 
-def traverse_the_web(url, depth):
-    pass
-
-
 def to_json(graph):
     pass
 
 
 def print_graph(graph, dest_file_name=None):
+    '@types: dict, str?'
     graph_in_json = to_json(graph)
     if dest_file_name:
         with open(dest_file_name, "w+") as f:
@@ -81,10 +81,6 @@ def send_to_mongodb(graph):
 
 # --------------------------------- argument parsing, validation
 
-get_dest_file_name = (__)
-get_limit = (__)
-
-
 URL_RE = re.compile("^(http[s]?:\/\/)?"        # schema           (optional)
                     "(www\.)?"                 # subdomain www    (optional)
                     "[a-zA-Z0-9\.\-]+"         # hostname, subdomain
@@ -93,11 +89,27 @@ URL_RE = re.compile("^(http[s]?:\/\/)?"        # schema           (optional)
 
 
 def get_url(url):
-    "Validate passed URL format"
+    """
+    @types: str -> str
+    @raise: InvalidArgumentValue: Invalid URL specified
+    """
     m = URL_RE.match(url)
     if m:
         return url
     raise InvalidArgumentValue("Invalid URL specified")
+
+
+def get_depth(depth):
+    '@types: str -> int'
+    if depth and depth.isdigit():
+        value = int(depth)
+        if value > 0:
+            return value
+    raise InvalidArgumentValue("Invalid depth value specified")
+
+
+def get_dest_file_name(file_name):
+    return file_name
 
 
 def parse_args(arg_by_name, *argument_to_fn_pairs):
