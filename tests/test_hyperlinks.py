@@ -86,7 +86,7 @@ def test_get_url():
               "https://rambler.ru/?downloadFrom=http://google.com", True,
               "http://", False,
               "m.c", False,
-              "mo.co", True)
+              "mo.co", False)
 
 
 def get_exit_params(args, monkeypatch):

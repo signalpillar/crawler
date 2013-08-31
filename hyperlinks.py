@@ -21,9 +21,9 @@ OPTIONS:
 
 """
 import sys
+import urlparse
 import collector
 import docopt
-import re
 from fn import _ as __
 
 
@@ -81,21 +81,12 @@ def send_to_mongodb(graph):
 
 
 # --------------------------------- argument parsing, validation
-
-URL_RE = re.compile("^(http[s]?:\/\/)?"        # schema           (optional)
-                    "(www\.)?"                 # subdomain www    (optional)
-                    "[a-zA-Z0-9\.\-]+"         # hostname, subdomain
-                    "\.[a-zA-Z]{2,5}[\.]?"     # domain
-                    "(?:[\/?].*)?")            # URI              (optional)
-
-
 def get_url(url):
     """
     @types: str -> str
     @raise: InvalidArgumentValue: Invalid URL specified
     """
-    m = URL_RE.match(url)
-    if m:
+    if bool(urlparse.urlparse(url).netloc):
         return url
     raise InvalidArgumentValue("Invalid URL specified")
 
