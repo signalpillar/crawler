@@ -17,7 +17,7 @@ def test_cli_flow_in_general():
             "--limit": "20",
             "--dbout": True}
 
-    with nested(mock.patch("collector.collect_links"),
+    with nested(mock.patch("collector.collect_outgoing_urls"),
                 mock.patch("hyperlinks.print_graph"),
                 mock.patch("hyperlinks.send_to_mongodb")) as (
             collect_links,
@@ -32,15 +32,16 @@ def test_cli_flow_in_general():
         send_to_mongodb.assert_called_once_with(graph)
 
 
-def test_cli_failed_due_to_invalid_depth(monkeypatch):
-    # given
-    args = {"--url": "http://me.at.com",
-            "--limit": "20.0"}
-    # when
-    (msg, error_code), _ = get_exit_params(args, monkeypatch)
-    # then
-    assert msg == 'Invalid depth value specified'
-    assert error_code == 1
+def test_arg_parsing_failed():
+    args = {"--limit": "20.0"}
+    with pytest.raises(hyperlinks.InvalidArgumentValue):
+        list(hyperlinks.parse_args(args, ("--limit", hyperlinks.get_limit)))
+
+
+def test_arg_parsing_ok():
+    args = {"--limit": "20", "--url": "filter.be"}
+    hyperlinks.parse_args(args, ("--limit", hyperlinks.get_limit,
+                                 "--url", hyperlinks.get_url))
 
 
 def test_cli_failed_due_to_invalid_url(monkeypatch):
@@ -66,8 +67,8 @@ def test_cli_flow_with_correct_args(monkeypatch):
     assert exit_params == []
 
 
-def test_depth_value():
-    are_valid(hyperlinks.get_depth,
+def test_limit_value_parsing():
+    are_valid(hyperlinks.get_limit,
               hyperlinks.InvalidArgumentValue,
               "20", True,
               "-20", False,

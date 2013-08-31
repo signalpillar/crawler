@@ -6,7 +6,7 @@ It will store each outgoing link for the URL, and then repeat the process
 for each or them, until --limit URLs will have been traversed.
 
 USAGE:
-    hyperlinks --url <start-url> --limit <depth> [--dbout] [--out <dest-file>]
+    hyperlinks --url <start-url> --limit <limit> [--dbout] [--out <dest-file>]
     hyperlinks -h | --help
     hyperlinks --version
 
@@ -14,12 +14,13 @@ OPTIONS:
     -h --help         Show this screen
     --version         Show version
     --url             URL where to start hyper links crawling
-    --limit           Depth of hyper links crawling
+    --limit           Limit of URLs to traverse
     --out <dest-file> File path to the JSON file where to store output,
                       if not specified output JSON to STDOUT
     --dbout           Causes the data to be stored in a MongoDB collection
 
 """
+import sys
 import collector
 import docopt
 import re
@@ -39,14 +40,14 @@ class InvalidArgumentValue(CliException):
 
 def cli(args):
     try:
-        url, depth, dest_file_name, dbout = parse_args(
+        url, limit, dest_file_name, dbout = parse_args(
             args,
             ("--url", get_url),
-            ("--limit", get_depth),
+            ("--limit", get_limit),
             ("--out", identity),
             ("--dbout", identity))
 
-        graph = collector.collect_links(url, depth)
+        graph = collector.collect_outgoing_urls(url, limit)
         print_graph(graph, dest_file_name)
         dbout and send_to_mongodb(graph)
     except CliException, ce:
@@ -57,8 +58,8 @@ identity = (__)
 
 
 def exit_cli(msg, error_code):
-    print msg
-    exit(error_code)
+    sys.stderr.write(msg)
+    sys.exit(error_code)
 
 
 def to_json(graph):
@@ -99,13 +100,13 @@ def get_url(url):
     raise InvalidArgumentValue("Invalid URL specified")
 
 
-def get_depth(depth):
+def get_limit(limit):
     '@types: str -> int'
-    if depth and depth.isdigit():
-        value = int(depth)
+    if limit and limit.isdigit():
+        value = int(limit)
         if value > 0:
             return value
-    raise InvalidArgumentValue("Invalid depth value specified")
+    raise InvalidArgumentValue("Invalid limit value specified")
 
 
 def get_dest_file_name(file_name):
@@ -119,10 +120,13 @@ def parse_args(arg_by_name, *argument_to_fn_pairs):
 
 
 if __name__ == '__main__':
-    args = docopt.docopt(__doc__, version=VERSION)
-    if args.get("--help"):
-        print __doc__
-    elif args.get("--version"):
-        print VERSION
-    else:
-        cli(args)
+    try:
+        args = docopt.docopt(__doc__, version=VERSION)
+        if args.get("--help"):
+            print __doc__
+        elif args.get("--version"):
+            print VERSION
+        else:
+            cli(args)
+    except KeyboardInterrupt:
+        exit_cli("Interrupted by keyboard\n", 1)
