@@ -22,12 +22,14 @@ OPTIONS:
 
 """
 import sys
-import urlparse
-import collector
-import docopt
 import json
+import docopt
+import urlparse
+import contextlib
 from fn import _ as __
 
+import collector
+import storage
 
 VERSION = "0.0.1"
 
@@ -86,7 +88,12 @@ def print_graph(graph, dest_file_name=None, pretty_print=False):
 
 
 def send_to_mongodb(graph):
-    print 'Send to MongoDB'
+    '@types: dict[str, collector.UrlInfo]'
+    try:
+        with contextlib.closing(storage.get_default()) as db:
+            db.write(graph)
+    except storage._BaseException, se:
+        raise CliException("Error while storing to the db. %s" % se)
 
 
 def get_url(url):
