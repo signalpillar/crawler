@@ -2,12 +2,13 @@ from fn import F
 from collections import defaultdict, namedtuple
 from itertools import repeat, izip, ifilterfalse
 import logging
+import logging.config
 import requests
 import urlparse
 import re
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.config.fileConfig("logging.ini")
 logger = logging.getLogger(__name__)
 
 SUPPORTED_MIME_TYPES = ('text/html',)
