@@ -5,4 +5,5 @@ pytest-cov>=1.6
 pytest-pep8>=1.0.4
 fn
 mock
+requests
 
