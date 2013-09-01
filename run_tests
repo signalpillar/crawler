@@ -1,5 +1,7 @@
-py.test -vv --capture=sys -s --showlocals \
+py.test --capture=sys -s \
     --doctest-modules \
     --looponfail \
     --pep8
     --cov .
+
+# --showlocals sometimes added for more details
