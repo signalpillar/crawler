@@ -50,8 +50,6 @@ def cli(args):
             ("--dbout", identity),
             ("--pretty-print", identity))
 
-        #print locals()
-        #return
         graph = collector.collect_outgoing_urls(url, limit)
         print_graph(
             graph,
@@ -72,16 +70,21 @@ def exit_cli(msg, error_code):
 
 def to_json(graph, pretty_print=False):
     '@types: dict[str, collector.UrlInfo], bool -> str'
+
+    graph = dict((
+        (k, {"incomming": list(v.incomming), "outgoing": list(v.outgoing)})
+        for k, v in graph.iteritems()))
+
     indent = pretty_print and 4 or 0
     return json.dumps(graph, indent=indent)
 
 
 def print_graph(graph, dest_file_name=None, pretty_print=False):
     '@types: dict, str?, bool'
-    graph_in_json = to_json(graph)
+    graph_in_json = to_json(graph, pretty_print)
     if dest_file_name:
         with open(dest_file_name, "w+") as f:
-            print(graph_in_json, f)
+            f.write(graph_in_json)
     else:
         print(graph_in_json)
 
