@@ -1,4 +1,4 @@
-""" Hyperlinks Crawler
+""" Hyper-links Crawler
 
 Traverse the Web as a linked graph from the starting --url finding
 all outgoing links (<a> tag).
@@ -13,7 +13,7 @@ USAGE:
 OPTIONS:
     -h --help             Show this screen
     --version             Show version
-    --url <start-url>     URL where to start hyper links crawling
+    --url <start-url>     URL where to start hyper-links crawling
     --limit <limit>       Limit of URLs to traverse
     --out <dest-file>     File path to the JSON file where to store output,
                           if not specified output JSON to STDOUT
