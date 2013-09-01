@@ -22,6 +22,16 @@ def new_url_info(incomming=None, outgoing=None):
                    set(outgoing or ()))
 
 
+def url_to_info_as_pure_dict(graph):
+    '@types: dict[str, UrlInfo] -> dict[str, dict[str, list]]'
+    return dict(
+        (
+            (k, {"incomming": list(v.incomming), "outgoing": list(v.outgoing)})
+            for k, v in graph.iteritems()
+        )
+    )
+
+
 def collect_outgoing_urls(start_url, limit):
     '''
     Algorithm applied below is very similar to BFS
