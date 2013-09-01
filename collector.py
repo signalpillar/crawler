@@ -44,11 +44,11 @@ def collect_outgoing_urls(start_url, limit):
                     info.incomming.add(parent_url)
                 candidates = urls
                 parent_to_url_queue.extend(izip(repeat(url), candidates))
-                print "OK     ", url, " <-- ", parent_url
+                logging.debug("OK     %s <-- %s" % (url, parent_url))
             else:
-                print "FAILED ", url, " <-- ", parent_url
+                logging.debug("FAILED     %s <-- %s" % (url, parent_url))
         else:
-            print "DONE   ", url, " <-- ", parent_url
+            logging.debug("ALREADY     %s <-- %s" % (url, parent_url))
             info = info_by_url[url]
             info.incomming.add(parent_url)
     return info_by_url
