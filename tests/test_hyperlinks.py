@@ -55,18 +55,6 @@ def test_cli_failed_due_to_invalid_url(monkeypatch):
     assert error_code == 1
 
 
-def test_cli_flow_with_correct_args(monkeypatch):
-    "Test arguments based on passed arguments"
-    # given
-    args = {"--url": "http://fake.com",
-            "--limit": "20"}
-
-    # when
-    exit_params = get_exit_params(args, monkeypatch)
-    # then
-    assert exit_params == []
-
-
 def test_limit_value_parsing():
     are_valid(hyperlinks.get_limit,
               hyperlinks.InvalidArgumentValue,
