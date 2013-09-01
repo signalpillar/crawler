@@ -6,24 +6,26 @@ It will store each outgoing link for the URL, and then repeat the process
 for each or them, until --limit URLs will have been traversed.
 
 USAGE:
-    hyperlinks --url <start-url> --limit <limit> [--dbout] [--out <dest-file>]
+    hyperlinks [options] --url <start-url> --limit <limit>
     hyperlinks -h | --help
     hyperlinks --version
 
 OPTIONS:
-    -h --help         Show this screen
-    --version         Show version
-    --url             URL where to start hyper links crawling
-    --limit           Limit of URLs to traverse
-    --out <dest-file> File path to the JSON file where to store output,
-                      if not specified output JSON to STDOUT
-    --dbout           Causes the data to be stored in a MongoDB collection
+    -h --help             Show this screen
+    --version             Show version
+    --url <start-url>     URL where to start hyper links crawling
+    --limit <limit>       Limit of URLs to traverse
+    --out <dest-file>     File path to the JSON file where to store output,
+                          if not specified output JSON to STDOUT
+    --pretty-print        JSON output will be pretty printed
+    --dbout               Causes the data to be stored in a MongoDB collection
 
 """
 import sys
 import urlparse
 import collector
 import docopt
+import json
 from fn import _ as __
 
 
@@ -40,21 +42,27 @@ class InvalidArgumentValue(CliException):
 
 def cli(args):
     try:
-        url, limit, dest_file_name, dbout = parse_args(
+        url, limit, dest_file_name, dbout, pretty_print = parse_args(
             args,
             ("--url", get_url),
             ("--limit", get_limit),
             ("--out", identity),
-            ("--dbout", identity))
+            ("--dbout", identity),
+            ("--pretty-print", identity))
 
+        #print locals()
+        #return
         graph = collector.collect_outgoing_urls(url, limit)
-        print_graph(graph, dest_file_name)
+        print_graph(
+            graph,
+            dest_file_name=dest_file_name,
+            pretty_print=pretty_print)
         dbout and send_to_mongodb(graph)
     except CliException, ce:
         exit_cli(str(ce), 1)
 
 
-identity = (__)
+identity = __
 
 
 def exit_cli(msg, error_code):
@@ -62,12 +70,14 @@ def exit_cli(msg, error_code):
     sys.exit(error_code)
 
 
-def to_json(graph):
-    pass
+def to_json(graph, pretty_print=False):
+    '@types: dict[str, collector.UrlInfo], bool -> str'
+    indent = pretty_print and 4 or 0
+    return json.dumps(graph, indent=indent)
 
 
-def print_graph(graph, dest_file_name=None):
-    '@types: dict, str?'
+def print_graph(graph, dest_file_name=None, pretty_print=False):
+    '@types: dict, str?, bool'
     graph_in_json = to_json(graph)
     if dest_file_name:
         with open(dest_file_name, "w+") as f:
