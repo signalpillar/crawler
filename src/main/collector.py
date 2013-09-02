@@ -44,27 +44,27 @@ def collect(start_url, limit):
     parent_to_url_queue = [(None, _normalize_url(start_url))]
     while parent_to_url_queue and limit > 0:
         parent_url, url = parent_to_url_queue.pop(0)
-        if url not in info_by_url:
 
             is_page_reached, urls = _get_page_urls(url)
+
             if is_page_reached:
                 limit = limit - 1
                 urls = ifilterfalse(_is_fragment_ref, urls)
-                urls = map(F(_normalize_url, url), urls)
+            urls = [_normalize_url(url, u) for u in urls]
 
                 info = info_by_url[url]
                 info.outgoing.update(urls)
-                if parent_url:
-                    info.incomming.add(parent_url)
-                candidates = urls
+
+            parent_url and info.incomming.add(parent_url)
+
+            candidates, visited = partition(info_by_url.has_key, urls)
+
+            [info_by_url.get(u).incomming.add(url) for u in visited]
+
                 parent_to_url_queue.extend(izip(repeat(url), candidates))
                 logging.debug("OK     %s <-- %s" % (url, parent_url))
             else:
                 logging.debug("FAILED     %s <-- %s" % (url, parent_url))
-        else:
-            logging.debug("ALREADY     %s <-- %s" % (url, parent_url))
-            info = info_by_url[url]
-            info.incomming.add(parent_url)
     return info_by_url
 
 
