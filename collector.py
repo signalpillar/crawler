@@ -9,7 +9,7 @@ import re
 
 
 logging.config.fileConfig("logging.ini")
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("collector")
 
 SUPPORTED_MIME_TYPES = ('text/html',)
 
