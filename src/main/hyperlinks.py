@@ -19,7 +19,7 @@ OPTIONS:
                           if not specified output JSON to STDOUT
     --pretty-print        JSON output will be pretty printed
     --dbout               Causes the data to be stored in a MongoDB collection
-    --concurrent          Run crawler using concurrency
+    --concurrent          Run crawler using async HTTP requests
 
 """
 import sys
@@ -48,7 +48,9 @@ def cli(args):
             ("--pretty-print", identity),
             ("--concurrent", identity))
 
-        collect = is_concurrent and collector.pcollect or collector.collect
+        collect = (is_concurrent
+                   and collector.pcollect
+                   or collector.collect)
         graph = collect(url, limit)
         print_graph(
             graph,
