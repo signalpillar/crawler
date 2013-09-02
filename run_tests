@@ -1,7 +1,7 @@
+export PYTHONPATH=$PYTHONPATH:`pwd`/src/main
 py.test --capture=sys -s \
     --doctest-modules \
     --looponfail \
-    --pep8
-    --cov .
+    --pep8 src/test
 
 # --showlocals sometimes added for more details
