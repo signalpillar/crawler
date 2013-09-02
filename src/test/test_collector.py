@@ -144,33 +144,6 @@ def test_cycle_references():
                                                       outgoing=[start_url])}
 
 
-def __test_general_flow_of_links_collecting():
-    start_url = "http://today.sunday.in.ua/url1"
-
-    route_table = {
-        start_url:
-        (200, 'text/html', content_with_urls(
-            "/url1",
-            "/",
-            "http://flavor",
-            "http://match.at.co",
-            "i.piont.to.first.com")),
-
-        "http://match.at.co":
-        (200, 'text/html', content_with_urls(
-            "nolinksatall.com/")),
-
-        "http://nolinksatall.com/":
-        (200, 'text/html', content_with_urls()),
-
-        "http://i.piont.to.first.com":
-        (200, 'text/html', content_with_urls(
-            start_url))
-    }
-
-    graph = __collect_links(start_url, route_table, 10)
-
-
 def __collect_links(start_url, route_table, visit_limit):
     ''' Test how link collecting works in small sandbox
 
