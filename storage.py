@@ -39,6 +39,7 @@ class Mongo(GraphStorage):
         self._client.disconnect()
 
     def write(self, graph):
+        '@types: dict[str, collector.UrlInfo]'
         db = self._client.graph_db
         collection = db.in_out_by_url
         collection.insert(

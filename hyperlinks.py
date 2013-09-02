@@ -19,6 +19,7 @@ OPTIONS:
                           if not specified output JSON to STDOUT
     --pretty-print        JSON output will be pretty printed
     --dbout               Causes the data to be stored in a MongoDB collection
+    --concurrent          Run crawler using concurrency
 
 """
 import sys
@@ -35,6 +36,7 @@ VERSION = "0.0.1"
 
 
 def cli(args):
+    '@types: dict[str, O]'
     try:
         url, limit, dest_file_name, dbout, pretty_print = _parse_args(
             args,
@@ -54,27 +56,13 @@ def cli(args):
         exit_cli(str(ce), 1)
 
 
-class CliException(Exception):
-    pass
-
-
-class InvalidArgumentValue(CliException):
-    pass
-
-
-identity = __
-
-
 def exit_cli(msg, error_code):
+    '''Exit from running CLI with error code specified and
+    printing error message into STDERR
+
+    @types: str, int'''
     sys.stderr.write(msg)
     sys.exit(error_code)
-
-
-def to_json(graph, pretty_print=False):
-    '@types: dict[str, collector.UrlInfo], bool -> str'
-    graph = collector.url_to_info_as_pure_dict(graph)
-    indent = pretty_print and 4 or 0
-    return json.dumps(graph, indent=indent)
 
 
 def print_graph(graph, dest_file_name=None, pretty_print=False):
@@ -96,6 +84,13 @@ def send_to_mongodb(graph):
         raise CliException("Error while storing to the db. %s" % se)
 
 
+def to_json(graph, pretty_print=False):
+    '@types: dict[str, collector.UrlInfo], bool -> str'
+    graph = collector.url_to_info_as_pure_dict(graph)
+    indent = pretty_print and 4 or 0
+    return json.dumps(graph, indent=indent)
+
+
 def get_url(url):
     """
     @types: str -> str
@@ -115,14 +110,22 @@ def get_limit(limit):
     raise InvalidArgumentValue("Invalid limit value specified")
 
 
-def get_dest_file_name(file_name):
-    return file_name
-
-
 def _parse_args(arg_by_name, *argument_to_fn_pairs):
     '@types: dict[str, O], tuple[str, (str, O -> T)] -> list[T]'
     for arg_name, arg_fn in argument_to_fn_pairs:
         yield arg_fn(arg_by_name.get(arg_name))
+
+
+class CliException(Exception):
+    ''' Base except for all failures that are related to CLI '''
+    pass
+
+
+class InvalidArgumentValue(CliException):
+    pass
+
+
+identity = __
 
 
 if __name__ == '__main__':
