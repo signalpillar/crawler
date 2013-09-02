@@ -30,11 +30,7 @@ OPTIONS:
 
 ## Initialization
 
-To install requirements, recommended to use `virtualenv`
-
-    mkdir -p ~/tmp/crawler-env
-    virtualenv ~/tmp/crawler-env
-    pip install -U -r requirements.txt
+To install dependencies in `virtualenv` and run tests use script `start_from_scratch.sh`
 
 ## Running tests
 
