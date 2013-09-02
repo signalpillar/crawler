@@ -33,7 +33,7 @@ def test_mimetype_guessing():
     assert ("text/html", None) == actual
 
 
-def __test_more_than_one_incomming():
+def test_more_than_one_incomming():
     # given
     start_url = "http://today.sunday.in.ua/url1"
 
@@ -82,7 +82,7 @@ def __test_more_than_one_incomming():
                 "http://from.go.go.go/index.jsp"])}
 
 
-def __test_limit_value_influence_on_collecting():
+def test_limit_value_influence_on_collecting():
     # given
     start_url = "http://today.sunday.in.ua/url1"
     only_one = 1
