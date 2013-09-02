@@ -1,5 +1,5 @@
 # coding: utf-8
-from mock import patch
+import mock
 
 import collector
 import contextlib
@@ -157,19 +157,24 @@ def __collect_links(start_url, route_table, visit_limit):
         - status code and mime type for HEAD request
         - list of outgoing links included in visited page
     '''
-
-    def get_content_from_route(url):
-        content = nth(route_table.get(url, ()), 2, default=None)
-        return content
+    def get_from_route(url):
+        record = route_table.get(url)
+        code, content = 404, None
+        if record:
+            code, _, content = record
+        response = mock.Mock()
+        response.text = content
+        response.status_code = code
+        return response
 
     def get_head_from_route(url):
         r = route_table.get(url, (404, None, None))
         status_code, mimetype, _ = r
-        return status_code, mimetype
+        return collector.HeadResponse(status_code, mimetype)
 
     with contextlib.nested(
-            patch("collector._get_resource_content", get_content_from_route),
-            patch("collector._get_resource_head", get_head_from_route)):
+            mock.patch("requests.get", get_from_route),
+            mock.patch("collector._get_resource_head", get_head_from_route)):
         return collector.collect(start_url, visit_limit)
 
 
@@ -201,9 +206,9 @@ def test_urls_parsed_from_html_content():
             <li><a href="http://area51.stackexchange.com">Area 51</a></li>
             <li><a href="http://careers.stackoverflow.com">Stackrs</a></li>
                 '''
-    expected = set(['http://stackexchange.com/sites#science',
-                    'http://stackapps.com',
-                    'http://meta.stackoverflow.com',
-                    'http://area51.stackexchange.com',
-                    'http://careers.stackoverflow.com'])
-    assert expected == collector._parse_a_tag_urls(content)
+    expected = True, set(['http://stackexchange.com/sites#science',
+                          'http://stackapps.com',
+                          'http://meta.stackoverflow.com',
+                          'http://area51.stackexchange.com',
+                          'http://careers.stackoverflow.com'])
+    assert expected == collector._parse_a_tag_urls((True, content))

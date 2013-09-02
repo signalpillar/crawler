@@ -38,15 +38,18 @@ VERSION = "0.0.1"
 def cli(args):
     '@types: dict[str, O]'
     try:
-        url, limit, dest_file_name, dbout, pretty_print = _parse_args(
+        (url, limit, dest_file_name, dbout,
+         pretty_print, is_concurrent) = _parse_args(
             args,
             ("--url", get_url),
             ("--limit", get_limit),
             ("--out", identity),
             ("--dbout", identity),
-            ("--pretty-print", identity))
+            ("--pretty-print", identity),
+            ("--concurrent", identity))
 
-        graph = collector.collect(url, limit)
+        collect = is_concurrent and collector.pcollect or collector.collect
+        graph = collect(url, limit)
         print_graph(
             graph,
             dest_file_name=dest_file_name,
