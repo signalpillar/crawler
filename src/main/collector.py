@@ -79,7 +79,7 @@ def _collect(start_url, limit, do_head_fn, do_get_fn):
                 [info_by_url.get(u).incomming.add(url) for u in visited]
 
                 parent_to_url_queue.extend(izip(repeat(url), candidates))
-                logging.debug("OK     %s <-- %s" % (url, parent_url))
+                logging.debug("OK         %s <-- %s" % (url, parent_url))
             else:
                 logging.debug("FAILED     %s <-- %s" % (url, parent_url))
     return info_by_url
@@ -96,7 +96,7 @@ def _get_outgoings(urls, do_head_fn, do_get_fn):
        asked URLs
 
     @types: iterable[str], callable, callable -> iterable[bool, list[str]]
-    @return: pair of flag whether page is reached at all
+    @return: list of pairs where first is flag whether page is reached
              and parsed URLs from it'''
     urls = tuple(urls)
 
