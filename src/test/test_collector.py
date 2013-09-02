@@ -167,14 +167,17 @@ def __collect_links(start_url, route_table, visit_limit):
         response.status_code = code
         return response
 
-    def get_head_from_route(url):
+    def head_from_route(url):
         r = route_table.get(url, (404, None, None))
         status_code, mimetype, _ = r
-        return collector.HeadResponse(status_code, mimetype)
+        response = mock.Mock()
+        response.status_code = status_code
+        response.headers.get.return_value = mimetype
+        return response
 
     with contextlib.nested(
             mock.patch("requests.get", get_from_route),
-            mock.patch("collector._get_resource_head", get_head_from_route)):
+            mock.patch("requests.head", head_from_route)):
         return collector.collect(start_url, visit_limit)
 
 
