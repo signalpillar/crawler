@@ -197,7 +197,7 @@ def __collect_links(start_url, route_table, visit_limit):
     with contextlib.nested(
             patch("collector._get_resource_content", get_content_from_route),
             patch("collector._get_resource_head", get_head_from_route)):
-        return collector.collect_outgoing_urls(start_url, visit_limit)
+        return collector.collect(start_url, visit_limit)
 
 
 def content_with_urls(*urls):

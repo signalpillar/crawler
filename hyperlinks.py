@@ -46,7 +46,7 @@ def cli(args):
             ("--dbout", identity),
             ("--pretty-print", identity))
 
-        graph = collector.collect_outgoing_urls(url, limit)
+        graph = collector.collect(url, limit)
         print_graph(
             graph,
             dest_file_name=dest_file_name,

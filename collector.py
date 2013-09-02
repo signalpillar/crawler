@@ -32,9 +32,12 @@ def url_to_info_as_pure_dict(graph):
     )
 
 
-def collect_outgoing_urls(start_url, limit):
-    '''
+def collect(start_url, limit):
+    ''' Collect recursively incoming and outgoing information
+    starting from specified URL
+
     Algorithm applied below is very similar to BFS
+    @types: str, int -> dict[str, UrlInfo]
     '''
     logger.info("staring url with limit %s: %s" % (limit, start_url))
     info_by_url = defaultdict(new_url_info)

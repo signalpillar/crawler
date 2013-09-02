@@ -118,7 +118,7 @@ class TestCli:
                 "--dbout": True,
                 "--pretty-print": True}
 
-        with nested(mock.patch("collector.collect_outgoing_urls"),
+        with nested(mock.patch("collector.collect"),
                     mock.patch("hyperlinks.send_to_mongodb")) as (
                 collect_links,
                 send_to_mongodb):
