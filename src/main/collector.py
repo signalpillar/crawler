@@ -1,6 +1,7 @@
-from fn.iters import partition
+from fn.iters import partition, nth
+from fn import F
 from collections import defaultdict, namedtuple
-from itertools import repeat, izip, ifilterfalse, starmap, tee, imap
+from itertools import repeat, izip, ifilterfalse, tee, imap, ifilter
 import logging
 import logging.config
 import requests
@@ -49,7 +50,7 @@ def collect(start_url, limit):
         urls_to_process = parent_to_url_queue[:limit]
         del parent_to_url_queue[:limit]
 
-        results = _get_outgoings([url for _, url in urls_to_process])
+        results = list(_get_outgoings([url for _, url in urls_to_process]))
         results = izip(urls_to_process, results)
 
         for result in results:
@@ -78,32 +79,19 @@ def collect(start_url, limit):
 HeadResponse = namedtuple("HeadResponse", ("status_code", "mime_type"))
 
 
-def _get_resource_head(url):
-    '''
-    Perform HEAD request to get headers by URL
-    @types: str -> HeadResponse
-    '''
-    r = requests.head(url)
+def _parse_head_response(r):
+    '@types: requests.Response -> HeadResponse'
     code, type_ = r.status_code, r.headers.get('content-type')
     if type_:
         # truncate charset information
         type_ = type_.split(';', 1)[0]
-    logger.debug("HEAD: %s Code: %s, Content-Type: %s" % (url, code, type_))
     return HeadResponse(code, type_)
 
 
-def _get_resource_content(url, head):
-    ''' Get content based on passed URL and its head
-    @types: str, HeadResponse -> tuple[bool, str?]'''
-    mime_type = head and head.mime_type
-    skip = mime_type and mime_type not in SUPPORTED_MIME_TYPES
-    is_successful, content = False, None
-    if not skip:
-        r = requests.get(url)
-        is_successful = r.status_code == requests.codes.ok
-        logger.debug("GET: %s, Success ?: %s" % (url, is_successful))
-        if is_successful:
-            content = r.text
+def _parse_get_response(r):
+    '@types: requests.Response -> tuple[bool, str]'
+    is_successful = r.status_code == requests.codes.ok
+    content = is_successful and r.text or None
     return is_successful, content
 
 
@@ -112,15 +100,46 @@ def _is_fragment_ref(url):
     return url.startswith("#")
 
 
+def _has_required_mime_type(head):
+    '@types: HeadResponse -> bool'
+    return not head or head.mime_type in SUPPORTED_MIME_TYPES
+
+
 def _get_outgoings(urls):
     ''' Get outgoing URLs for each specified URL
     @types: iterable[str] -> iterable[bool, list[str]]
     @return: pair of flag whether page is reached at all
              and parsed URLs from it'''
     urls_for_heads, urls_for_contents = tee(urls)
-    heads = imap(_get_resource_head, urls_for_heads)
-    contents = starmap(_get_resource_content, izip(urls_for_contents, heads))
-    return imap(_parse_a_tag_urls, contents)
+
+    # get head information for all passed URLs
+    heads = (requests.head(u) for u in urls_for_heads)
+    heads = imap(_parse_head_response, heads)
+
+    # get content for only those URLs where head information is appropriate
+    n_heads = ifilter(F(_has_required_mime_type) << second, enumerate(heads))
+    n_urls = list(_common_by_index(enumerate(urls), n_heads))
+    contents = (requests.get(u) for _, u in n_urls)
+    outgoings = imap(F(_parse_a_tag_urls) << _parse_get_response, contents)
+
+    urls_with_outgoings = imap(second, n_urls)
+    outgoings_per_n_url = dict(izip(urls_with_outgoings, outgoings))
+    # restore order of results according to passed URLs
+    return (outgoings_per_n_url.get(u, (False, None)) for u in urls)
+
+
+def second(xs):
+    '@types: iterable[T] -> T?'
+    return nth(xs, 1)
+
+
+def _common_by_index(dst, src):
+    '@types: iterable[[int, A]], iterable[[int, B]] -> iterable[[int, A]]'
+    dst_dict = dict(dst)
+    src_dict = dict(src)
+    for idx in src_dict:
+        if idx in dst_dict:
+            yield idx, dst_dict[idx]
 
 
 A_TAG_HREF_RE = re.compile("<a\s+.*?href=\"(.*?)\"")

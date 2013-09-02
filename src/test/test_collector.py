@@ -6,8 +6,6 @@ import contextlib
 
 from collector import _normalize_url, new_url_info
 
-from fn.iters import nth
-
 
 def test_normalize_url():
     base = "http://x.com"
@@ -194,6 +192,41 @@ def content_with_urls(*urls):
     return "\n".join(
         ('<a href="%s"></a>' % u for u in urls)
     )
+
+
+def test_has_required_mimetype():
+    head = collector.HeadResponse(200, None)
+    actual = collector._has_required_mime_type(head)
+    assert False == actual
+
+    head = collector.HeadResponse(200, 'text/html')
+    actual = collector._has_required_mime_type(head)
+    assert True == actual
+
+    head = collector.HeadResponse(200, 'text/xml')
+    actual = collector._has_required_mime_type(head)
+    assert False == actual
+
+
+def test_second():
+    xs = (u for u in xrange(10))
+    assert 1 == collector.second(xs)
+
+    xs = []
+    assert None == collector.second(xs)
+
+    xs = {}
+    assert None == collector.second(xs)
+
+    xs = {1: 2, 2: 3}
+    assert 2 == collector.second(xs)
+
+
+def test_commong_by_index():
+    r = collector._common_by_index(
+        enumerate(xrange(10)),
+        [(5, 'x'), (6, 'y')])
+    assert [(5, 5), (6, 6)] == list(r)
 
 
 def test_urls_parsed_from_html_content():
