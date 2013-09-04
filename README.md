@@ -30,9 +30,9 @@ OPTIONS:
 
 ## Initialization
 
-To install dependencies in `virtualenv` and run tests use make
-    
-    make bootstrap
+To install dependencies in `virtualenv` and run tests use 
+
+    start_from_scratch.sh
 
 ## Running tests
 
