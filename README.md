@@ -1,5 +1,7 @@
 # Hyperlinks crawler
 
+[![Requirements Status](https://requires.io/github/signalpillar/crawler/requirements.png?branch=master)](https://requires.io/github/signalpillar/crawler/requirements/?branch=master)
+
 Everybody must implement at least one crawler
 
 ```
